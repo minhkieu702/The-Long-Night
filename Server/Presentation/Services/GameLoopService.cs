@@ -81,8 +81,8 @@ public class GameLoopService : BackgroundService
     {
         foreach (var room in _matchmaking.GetAllActiveRooms())
         {
-            // Skip updates if the room is paused for level-up
-            if (room.Status == GameStatus.LevelUpPause)
+            // Skip updates if the room is paused (manual pause or level-up)
+            if (room.Status == GameStatus.LevelUpPause || room.Status == GameStatus.Paused)
                 continue;
 
             UpdateRoom(room, deltaTime);
@@ -256,8 +256,12 @@ public class GameLoopService : BackgroundService
             await _hubContext.Clients.Group(room.RoomId).SendAsync("ReceiveGameState", snapshot);
         }
 
-        // Also broadcast GameOver rooms one final time
-        // (GetAllActiveRooms only returns Playing/LevelUpPause, so we handle GameOver here)
+        // Also broadcast GameOver rooms so clients receive the final state
+        foreach (var room in _matchmaking.GetGameOverRooms())
+        {
+            var snapshot = CreateSnapshot(room);
+            await _hubContext.Clients.Group(room.RoomId).SendAsync("ReceiveGameState", snapshot);
+        }
     }
 
     private static GameStateSnapshot CreateSnapshot(Room room)

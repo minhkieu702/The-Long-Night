@@ -76,7 +76,12 @@ public class MatchmakingService : IMatchmakingService
 
     public IEnumerable<Room> GetAllActiveRooms()
     {
-        return _rooms.Values.Where(r => r.Status == GameStatus.Playing || r.Status == GameStatus.LevelUpPause);
+        return _rooms.Values.Where(r => r.Status == GameStatus.Playing || r.Status == GameStatus.LevelUpPause || r.Status == GameStatus.Paused);
+    }
+
+    public IEnumerable<Room> GetGameOverRooms()
+    {
+        return _rooms.Values.Where(r => r.Status == GameStatus.GameOver);
     }
 
     /// <summary>

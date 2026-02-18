@@ -63,6 +63,49 @@ public class GameHub : Hub
         await _mediator.Send(command);
     }
 
+    public async Task TogglePause()
+    {
+        var command = new TogglePauseCommand
+        {
+            ConnectionId = Context.ConnectionId
+        };
+
+        var isPaused = await _mediator.Send(command);
+
+        // Notify everyone in the room about the pause/resume
+        var room = _matchmaking.GetRoomByPlayer(Context.ConnectionId);
+        if (room != null)
+        {
+            await Clients.Group(room.RoomId).SendAsync("GamePaused", isPaused);
+        }
+    }
+
+    public async Task RequestNewGame()
+    {
+        var room = _matchmaking.GetRoomByPlayer(Context.ConnectionId);
+        if (room == null || room.Status != GameStatus.GameOver)
+            return;
+
+        // Reset the room for a fresh game
+        room.Reset();
+
+        // Notify each player with their new spawn position
+        foreach (var kvp in room.Players)
+        {
+            var player = kvp.Value;
+            var result = new JoinGameResult
+            {
+                RoomId = room.RoomId,
+                MapWidth = room.MapWidth,
+                MapHeight = room.MapHeight,
+                StartX = player.Position.X,
+                StartY = player.Position.Y
+            };
+
+            await Clients.Client(kvp.Key).SendAsync("NewGameStarted", result);
+        }
+    }
+
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         var room = _matchmaking.GetRoomByPlayer(Context.ConnectionId);

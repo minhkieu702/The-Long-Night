@@ -9,4 +9,5 @@ public interface IMatchmakingService
     Room? GetRoom(string roomId);
     Room? GetRoomByPlayer(string connectionId);
     IEnumerable<Room> GetAllActiveRooms();
+    IEnumerable<Room> GetGameOverRooms();
 }

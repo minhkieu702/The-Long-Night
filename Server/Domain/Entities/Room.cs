@@ -42,4 +42,39 @@ public class Room
         }
         return false;
     }
+
+    /// <summary>
+    /// Reset the room for a new game — clears enemies, bullets, wave state,
+    /// and resets all player entities to defaults.
+    /// </summary>
+    public void Reset()
+    {
+        Enemies.Clear();
+        Bullets.Clear();
+        CurrentWave = 0;
+        WaveTimer = 0f;
+
+        var random = new Random();
+        foreach (var kvp in Players)
+        {
+            var player = kvp.Value;
+            player.HP = 100f;
+            player.XP = 0;
+            player.XpToNextLevel = 100;
+            player.Level = 1;
+            player.Stats = new PlayerStats();
+            player.IsInvulnerable = false;
+            player.InvulnerabilityTimer = 0f;
+            player.FireCooldown = 0f;
+            player.LevelUpPending = false;
+            player.SkillChoices.Clear();
+            player.InputDirection = System.Numerics.Vector2.Zero;
+            player.Position = new System.Numerics.Vector2(
+                MapWidth / 2f + (float)(random.NextDouble() * 100 - 50),
+                MapHeight / 2f + (float)(random.NextDouble() * 100 - 50)
+            );
+        }
+
+        Status = GameStatus.Playing;
+    }
 }
